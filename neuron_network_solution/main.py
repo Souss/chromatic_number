@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-from graph import Graph
+from chromaticgraph import ChromaticGraph as Graph
 import argparse
 import logging
+import time
 
 def         main():
 
@@ -15,16 +16,22 @@ def         main():
     )
     args = parser.parse_args()
 
+    logging.basicConfig(
+        level=logging.INFO,
+        format='[Chromatic][%(asctime)s](%(levelname)s): %(message)s',
+        datefmt='%m/%d/%Y %H:%M:%S'
+        )
+
     for filename in args.files:
         try:
             graph = Graph(filename)
             chromatic_number = graph.get_chromatic_number()
             logging.info(
-                "[ChromaticNumber][File `{}`] Chromatic number = {}"
+                "File `{}`, Chromatic number = {}"
                 .format(filename, chromatic_number)
             )
         except Exception as err:
-            logging.error("[ChromaticNumber][File `{}`] {} ({})"
+            logging.error("File `{}`, {} ({})"
                           .format(filename, err, type(err)))
 
 if __name__ == "__main__":

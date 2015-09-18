@@ -12,11 +12,9 @@ class       Neuron:
 
     def     __init__(self, identifier):
 
-        self.last_cycle = 0
-
         self.connections = {}
         self.identifier = identifier
-        self.state = None
+        self.marked = False
 
     """
         Connection management
@@ -47,9 +45,16 @@ class       Neuron:
 
     def     display(self):
 
-        print("* Node {}".format(self.identifier))
+        print("+ Node {}".format(self.identifier))
         for identifier, connection in self.connections.items():
             print("  => {} (weight {})".format(connection.next.identifier, connection.weight))
+
+    """
+        Perception Input / Output
+        To reimplement to each type of neuron
+    """
+    def     perception(self, *args, **kwargs):
+        return args, kwargs
 
     """
         Properties
@@ -75,20 +80,22 @@ class       Neuron:
         del self._identifier
 
     @property
-    def     state(self):
+    def     marked(self):
         """ State of the Neuron """
 
-        return self._state
+        return self._marked
 
-    @state.setter
-    def     state(self, istate):
+    @marked.setter
+    def     marked(self, imarked):
 
-        self._state = istate
+        if not isinstance(imarked, bool):
+            raise TypeError("marked value for Neuron should be a boolean")
+        self._marked = imarked
 
-    @state.deleter
-    def     state(self):
+    @marked.deleter
+    def     marked(self):
 
-        del self._state
+        del self._marked
 
 """
     This is a representation of a connection between two neurons
@@ -158,54 +165,3 @@ class       Connection:
         """ To share orientations with othe Neuron"""
 
         return self._next
-
-
-class       Graph:
-
-    def     __init__(self, filename):
-
-        self.cycle = 0 # Number of call of Chromatic number calculated
-        self.neurons = {}
-
-        self.__filename = filename
-        self.__graph_loading()
-
-    def     __parse_connections(self, line):
-
-        line = line.rsplit('\n', 1)[0]
-        neuron_id, connections_id = line.split(":", 1)
-        neuron_left = None
-        if neuron_id in self.neurons:
-            neuron_left = self.neurons[neuron_id]
-        else:
-            neuron_left = Neuron(neuron_id)
-            self.neurons[neuron_id] = neuron_left
-        for neuron_id in connections_id.split(","):
-            neuron_right = None
-            if neuron_id in self.neurons:
-                neuron_right = self.neurons[neuron_id]
-            else:
-                neuron_right = Neuron(neuron_id)
-                self.neurons[neuron_id] = neuron_right
-            neuron_left.add_or_update_connection(neuron_right)
-
-    def     __display_neurons(self):
-
-        for neuron in self.neurons.values():
-            neuron.display()
-
-    def     __graph_loading(self):
-
-        try:
-            with open(self.__filename, 'r') as fd:
-
-                for line in fd:
-                    self.__parse_connections(line)
-                self.__display_neurons()
-
-        except Exception as err:
-            logging.error("{} ({})".format(err, type(err)))
-
-    def     get_chromatic_number(self):
-
-        return 0
