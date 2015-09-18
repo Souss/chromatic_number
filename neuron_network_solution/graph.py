@@ -47,7 +47,7 @@ class       Neuron:
 
         print("+ Node {}".format(self.identifier))
         for identifier, connection in self.connections.items():
-            print("  => {} (weight {})".format(connection.next.identifier, connection.weight))
+            print("  => {} (weight = {})".format(connection.next.identifier, connection.weight))
 
     """
         Perception Input / Output

@@ -7,15 +7,13 @@ MAX_CHAR_VALUE = 255
 
 class       NeuronChromatic(Neuron):
 
-    colors = set()
-
     def     __init__(self, identifier):
 
         super(NeuronChromatic, self).__init__(identifier)
 
         self.color = None
 
-    def     generate_uniq_color(self):
+    def     generate_uniq_color(self, graph_colors=set()):
 
         # Not that much elaborate function. The main purpose isn't here
         attempts = ATTEMPTS
@@ -25,35 +23,46 @@ class       NeuronChromatic(Neuron):
                 hex(randint(0, 255)).rsplit('x', 1)[1],
                 hex(randint(0, 255)).rsplit('x', 1)[1]
                 )
-            if color_random not in self.colors:
-                self.colors.add(color_random)
+            if color_random not in graph_colors:
+                graph_colors.add(color_random)
                 return color_random
             attempts -= 1
         raise ValueError("Couldn't generate a uniq color after {} attempts"
                          .format(ATTEMPTS))
 
-    def     perception(self, *args, **kwargs):
+    def     perception(self, graph_colors):
 
+        if not isinstance(graph_colors, set):
+            raise TypeError(
+                "Perception parameter `graph_colors` must be a set."
+                )
         neighbours_color = set()
         self.marked = True
 
         for connection in self.connections.values():
 
             if not connection.next.marked:
-                connection.next.perception()
+                connection.next.perception(graph_colors)
             color_connection = connection.next.color
             if color_connection:
                 neighbours_color.add(color_connection)
 
-        available_colors = self.colors - neighbours_color
+        available_colors = graph_colors - neighbours_color
         if not available_colors:
-            self.color = self.generate_uniq_color()
-            self.colors.add(self.color)
+            self.color = self.generate_uniq_color(graph_colors)
+            graph_colors.add(self.color)
         else:
             self.color = next(iter(available_colors))
 
-        return len(self.colors)
+        return len(graph_colors)
 
+    def     display(self):
+
+        print("+ Node {} (color = {})".format(self.identifier, self.color))
+        for identifier, connection in self.connections.items():
+            print("  => {} (weight = {})".format(
+                connection.next.identifier,
+                connection.weight))
     """
         Property
     """
@@ -117,7 +126,8 @@ class       ChromaticGraph:
         if self.neurons:
 
             entry_point = next(iter(self.neurons.values()))
-            chromatic_number = entry_point.perception()
+            graph_colors = set()
+            chromatic_number = entry_point.perception(graph_colors)
             return chromatic_number
 
         return 0
